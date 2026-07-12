@@ -63,7 +63,7 @@ export default async function CardPage() {
             <div className="customer-greeting">
               <span className="eyebrow">Personal loyalty card</span>
               <Greeting name={profile.name.trim().split(/\s+/)[0] || 'Sipster'} />
-              <p>Thank you for being our loyal customer, {profile.name.split(/\s+/)[0] || 'Sipster'}!</p>
+              <p>Thank you for being our loyal customer!</p>
             </div>
 
             <div className="customer-stamps">
