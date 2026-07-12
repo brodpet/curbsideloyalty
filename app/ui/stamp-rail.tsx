@@ -15,9 +15,10 @@ export function StampRail({ currentStamps, threshold, compact = false }: StampRa
     >
       {Array.from({ length: threshold }, (_, index) => {
         const filled = index < currentStamps;
+        const isRewardSlot = index === threshold - 1;
         return (
-          <span className={`stamp-slot${filled ? ' stamp-slot--filled' : ''}`} key={index}>
-            {filled ? <CoffeeCupIcon size={compact ? 13 : 17} strokeWidth={1.7} /> : <span>{index + 1}</span>}
+          <span className={`stamp-slot${filled ? ' stamp-slot--filled' : ''}${isRewardSlot ? ' stamp-slot--reward' : ''}`} key={index}>
+            {filled ? <CoffeeCupIcon size={compact ? 13 : 17} strokeWidth={1.7} /> : isRewardSlot ? <span>FREE</span> : <span>{index + 1}</span>}
           </span>
         );
       })}

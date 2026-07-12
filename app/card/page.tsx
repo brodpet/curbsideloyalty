@@ -2,8 +2,8 @@ import { redirect } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import { createClient } from '@/lib/supabase/server';
 import { logout } from '@/app/auth/actions';
-import { CoffeeCupIcon, LogoutIcon, ScanIcon } from '@/app/ui/icons';
 import { Brand } from '@/app/ui/brand';
+import { CoffeeCupIcon, LogoutIcon, ScanIcon } from '@/app/ui/icons';
 import { StampRail } from '@/app/ui/stamp-rail';
 import { STAMP_THRESHOLD } from '@/lib/loyalty';
 import { AutoRefresh } from './refresh';
@@ -32,116 +32,79 @@ export default async function CardPage() {
   if (rewardsError) console.error('rewards count failed', rewardsError);
 
   const availableRewards = freeCoffees ?? 0;
-  const firstName = profile.name.trim().split(/\s+/)[0] || 'there';
-  const stampsToGo = STAMP_THRESHOLD - profile.current_stamps;
 
   return (
     <main className="customer-page page-shell">
       <AutoRefresh />
-      <header className="app-header">
-        <Brand compact />
-        <div className="header-actions">
-          <span className="status-chip">Card is live</span>
-          <form action={logout}>
-            <button className="text-button" type="submit">
-              <LogoutIcon size={16} />
-              Log out
-            </button>
-          </form>
-        </div>
-      </header>
+      <div className="customer-layout">
+        <aside className="customer-side">
+          <div className="customer-side__top">
+            <Brand />
+            <form action={logout}>
+              <button aria-label="Log out" className="side-icon-button" type="submit">
+                <LogoutIcon size={18} />
+              </button>
+            </form>
+          </div>
 
-      <div className="page-content">
-        <div className="customer-grid">
-          <section className="customer-intro" aria-labelledby="card-heading">
-            <span className="eyebrow">Personal loyalty card</span>
-            <Greeting name={firstName} />
-            <p className="customer-intro__lead">
-              Keep this ticket handy when you order. Your progress updates automatically after a stamp.
-            </p>
+          <div className="customer-side__middle">
+            <div className="loyalty-script">Loyalty Card</div>
+            <p className="customer-side__note">A small thank-you for making Curbside part of your everyday.</p>
+          </div>
 
-            <div className="progress-summary">
-              <div className="progress-summary__number">{profile.current_stamps}/{STAMP_THRESHOLD}</div>
-              <p className="progress-summary__copy">
-                {stampsToGo === 1
-                  ? 'One more stamp and your next coffee is on us.'
-                  : `${stampsToGo} stamps to your next free coffee.`}
-              </p>
+          <div className="customer-side__footer">
+            <span><CoffeeCupIcon size={17} /> Curbside Café</span>
+            <span><ScanIcon size={17} /> Your card is ready</span>
+          </div>
+        </aside>
+
+        <section className="customer-main" aria-labelledby="card-heading">
+          <div className="customer-main__inner">
+            <div className="customer-greeting">
+              <span className="eyebrow">Personal loyalty card</span>
+              <Greeting name={profile.name.trim().split(/\s+/)[0] || 'Sipster'} />
+              <p>Thank you for being our loyal customer, {profile.name.split(/\s+/)[0] || 'Sipster'}!</p>
             </div>
-          </section>
 
-          <div className="ticket-column">
-            <section className="ticket-card ticket-card--lime" aria-labelledby="ticket-heading">
-              <div className="ticket-card__header">
-                <div>
-                  <div className="ticket-code">Customer loyalty ticket</div>
-                  <h2 className="ticket-card__title" id="ticket-heading">Show this at the counter</h2>
-                </div>
-                <div className="ticket-code">#{profile.card_code.slice(0, 6)}</div>
+            <div className="customer-stamps">
+              <StampRail currentStamps={profile.current_stamps} threshold={STAMP_THRESHOLD} />
+            </div>
+
+            <p className="customer-reward-line">Get 1 free drink on your 10th order</p>
+
+            {availableRewards > 0 && (
+              <div aria-live="polite" className="customer-reward-ready" role="status">
+                <CoffeeCupIcon size={22} />
+                <span>You have {availableRewards} free drink{availableRewards === 1 ? '' : 's'} ready to redeem.</span>
               </div>
-              <div className="ticket-card__rule" />
-              <div className="ticket-card__body">
+            )}
+
+            <details className="qr-drawer">
+              <summary>
+                <span><ScanIcon size={19} /> Show my QR at the counter</span>
+                <span className="qr-drawer__hint">Tap to open</span>
+              </summary>
+              <div className="qr-drawer__body">
                 <div className="qr-frame">
                   <QRCodeSVG
-                    bgColor="#ffffff"
-                    fgColor="#171311"
+                    bgColor="#f7f4e8"
+                    fgColor="#2b4c35"
                     level="M"
                     marginSize={1}
-                    size={220}
+                    size={210}
                     title="Your Curbside loyalty QR code"
                     value={profile.card_code}
                   />
                 </div>
-                <div className="ticket-card__details">
-                  <div className="ticket-card__detail">
-                    <ScanIcon size={21} />
-                    <span>Ask the barista to scan your card.</span>
-                  </div>
-                  <div className="ticket-card__detail">
-                    <CoffeeCupIcon size={21} />
-                    <span>Every tenth stamp becomes a free coffee.</span>
-                  </div>
-                </div>
-              </div>
-              <div className="ticket-card__footer">
-                <span>Keep this screen open</span>
-                <span>Ready when you are →</span>
-              </div>
-            </section>
-
-            <section className="stamp-card" aria-labelledby="stamps-heading">
-              <div className="stamp-card__header">
-                <h2 className="stamp-card__title" id="stamps-heading">Your stamp run</h2>
-                <span className="stamp-count">{profile.current_stamps} / {STAMP_THRESHOLD} stamps</span>
-              </div>
-              <StampRail currentStamps={profile.current_stamps} threshold={STAMP_THRESHOLD} />
-              <p className="stamp-card__caption">The last stamp resets the rail and adds a reward to your pocket.</p>
-            </section>
-
-            <section
-              aria-live="polite"
-              className={`reward-pocket${availableRewards === 0 ? ' reward-pocket--empty' : ''}`}
-            >
-              <div className="reward-pocket__content">
-                <CoffeeCupIcon size={30} />
                 <div>
-                  <div className="ticket-code">Reward pocket</div>
-                  {availableRewards > 0 ? (
-                    <>
-                      <div className="reward-pocket__title">{availableRewards} free coffee{availableRewards === 1 ? '' : 's'} waiting</div>
-                      <p className="reward-pocket__copy">Show this card at the counter to redeem one.</p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="reward-pocket__title">Nothing in the pocket yet</div>
-                      <p className="reward-pocket__copy">Keep collecting. Your first reward arrives at stamp ten.</p>
-                    </>
-                  )}
+                  <div className="ticket-code">Your scan code</div>
+                  <p>Open this panel when you are ready to collect your next stamp.</p>
+                  <span className="qr-drawer__code">#{profile.card_code.slice(0, 6)}</span>
                 </div>
               </div>
-            </section>
+            </details>
           </div>
-        </div>
+        </section>
       </div>
     </main>
   );

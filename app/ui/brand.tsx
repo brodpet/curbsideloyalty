@@ -8,7 +8,7 @@ export function Brand({ compact = false }: { compact?: boolean }) {
       </span>
       <span className="brand-wordmark">
         <span>CURBSIDE</span>
-        <span>LOYALTY</span>
+        <span className="brand-cafe">CAFÉ</span>
       </span>
     </div>
   );

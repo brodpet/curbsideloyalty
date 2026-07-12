@@ -1,15 +1,23 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Allura, DM_Sans, IBM_Plex_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
-const display = Bricolage_Grotesque({
-  variable: "--font-display",
+const serif = Playfair_Display({
+  variable: "--font-serif",
+  weight: ["400", "500", "600", "700", "800"],
   subsets: ["latin"],
   display: "swap",
 });
 
-const sans = IBM_Plex_Sans({
-  variable: "--font-plex-sans",
+const script = Allura({
+  variable: "--font-script",
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const sans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
   display: "swap",
 });
@@ -34,7 +42,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${display.variable} ${sans.variable} ${mono.variable} h-full antialiased`}
+      className={`${serif.variable} ${script.variable} ${sans.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
