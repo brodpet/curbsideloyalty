@@ -4,7 +4,7 @@ create table public.profiles (
   name text not null,
   email text not null,
   card_code uuid not null default gen_random_uuid() unique,
-  current_stamps int not null default 0 check (current_stamps >= 0 and current_stamps < 10),
+  current_stamps int not null default 0 check (current_stamps >= 0 and current_stamps < 10), -- keep in sync with STAMP_THRESHOLD in lib/loyalty.ts
   created_at timestamptz not null default now()
 );
 
@@ -22,6 +22,11 @@ create table public.rewards (
   earned_at timestamptz not null default now(),
   redeemed_at timestamptz
 );
+
+-- Indexes for the hot paths: latest stamp per customer (cooldown check),
+-- unredeemed rewards per customer, RLS filters.
+create index stamps_customer_id_stamped_at_idx on public.stamps (customer_id, stamped_at desc);
+create index rewards_unredeemed_idx on public.rewards (customer_id) where redeemed_at is null;
 
 alter table public.profiles enable row level security;
 alter table public.stamps enable row level security;
@@ -44,7 +49,7 @@ security definer set search_path = public
 as $$
 begin
   insert into public.profiles (id, name, email)
-  values (new.id, coalesce(new.raw_user_meta_data ->> 'name', 'Customer'), new.email);
+  values (new.id, coalesce(new.raw_user_meta_data ->> 'name', 'Customer'), coalesce(new.email, ''));
   return new;
 end;
 $$;
