@@ -14,25 +14,28 @@ export function CustomerSearch({
   const [query, setQuery] = useState('');
   const [hits, setHits] = useState<CustomerHit[]>([]);
   const [searching, setSearching] = useState(false);
+  const [resolvedQuery, setResolvedQuery] = useState('');
   const requestId = useRef(0);
 
   useEffect(() => {
     const q = query.trim();
-    if (q.length < 2) {
-      setHits([]);
-      setSearching(false);
-      return;
-    }
-    setSearching(true);
     const id = ++requestId.current;
+    if (q.length < 2) return;
+
     const timer = setTimeout(async () => {
+      setSearching(true);
       const results = await searchCustomers(q);
       if (id !== requestId.current) return; // a newer search superseded this one
       setHits(results);
+      setResolvedQuery(q);
       setSearching(false);
     }, 300);
     return () => clearTimeout(timer);
   }, [query]);
+
+  const normalizedQuery = query.trim();
+  const showResults = normalizedQuery.length >= 2;
+  const waitingForResults = showResults && resolvedQuery !== normalizedQuery;
 
   return (
     <div className="customer-search">
@@ -46,11 +49,11 @@ export function CustomerSearch({
         placeholder="Start typing a name…"
         value={query}
       />
-      {searching && <p className="customer-search__status">Searching…</p>}
-      {!searching && query.trim().length >= 2 && hits.length === 0 && (
+      {(searching || waitingForResults) && <p className="customer-search__status">Searching…</p>}
+      {!searching && !waitingForResults && showResults && hits.length === 0 && (
         <p className="customer-search__status">No customers match that.</p>
       )}
-      {hits.length > 0 && (
+      {showResults && !waitingForResults && hits.length > 0 && (
         <ul className="customer-results">
           {hits.map((hit) => (
             <li key={hit.cardCode}>

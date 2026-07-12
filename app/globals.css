@@ -763,9 +763,11 @@ button:disabled {
   transform: rotate(-3deg) translateY(-0.1rem);
 }
 
-.stamp-slot--filled svg {
-  color: var(--purple);
+.stamp-slot--filled .stamp-steam {
+  height: 62%;
+  object-fit: contain;
   position: relative;
+  width: 48%;
   z-index: 1;
 }
 
@@ -797,6 +799,11 @@ button:disabled {
 
 .stamp-rail--compact .stamp-slot--reward {
   font-size: 1rem;
+}
+
+.stamp-rail--compact .stamp-slot--filled .stamp-steam {
+  height: 56%;
+  width: 48%;
 }
 
 .customer-reward-line {

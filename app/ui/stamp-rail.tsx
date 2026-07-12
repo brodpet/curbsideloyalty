@@ -1,4 +1,4 @@
-import { CoffeeCupIcon } from './icons';
+import Image from 'next/image';
 
 type StampRailProps = {
   currentStamps: number;
@@ -18,7 +18,16 @@ export function StampRail({ currentStamps, threshold, compact = false }: StampRa
         const isRewardSlot = index === threshold - 1;
         return (
           <span className={`stamp-slot${filled ? ' stamp-slot--filled' : ''}${isRewardSlot ? ' stamp-slot--reward' : ''}`} key={index}>
-            {filled ? <CoffeeCupIcon size={compact ? 13 : 17} strokeWidth={1.7} /> : isRewardSlot ? <span>FREE</span> : <span>{index + 1}</span>}
+            {filled ? (
+              <Image
+                alt=""
+                aria-hidden="true"
+                className="stamp-steam"
+                height={311}
+                src="/stamp-steam-cropped.png"
+                width={249}
+              />
+            ) : isRewardSlot ? <span>FREE</span> : <span>{index + 1}</span>}
           </span>
         );
       })}

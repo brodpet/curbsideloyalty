@@ -9,12 +9,13 @@ function greetingForHour(hour: number): string {
 }
 
 export function Greeting({ name }: { name: string }) {
-  // Computed only after mount: the server renders in UTC, so a render-time
-  // greeting shows the wrong time of day for the customer.
   const [greeting, setGreeting] = useState('Hello');
 
   useEffect(() => {
-    setGreeting(greetingForHour(new Date().getHours()));
+    const timer = window.setTimeout(() => {
+      setGreeting(greetingForHour(new Date().getHours()));
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   return (
