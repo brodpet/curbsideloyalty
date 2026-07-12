@@ -14,5 +14,9 @@ export function applyStamp(currentStamps: number): { newStamps: number; rewardEa
 
 export function isWithinCooldown(lastStampedAt: string | null, nowMs: number): boolean {
   if (!lastStampedAt) return false;
-  return nowMs - Date.parse(lastStampedAt) < STAMP_COOLDOWN_MS;
+  const lastMs = Date.parse(lastStampedAt);
+  if (Number.isNaN(lastMs)) {
+    throw new Error(`Invalid timestamp: ${lastStampedAt}`);
+  }
+  return nowMs - lastMs < STAMP_COOLDOWN_MS;
 }
