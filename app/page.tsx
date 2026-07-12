@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
 import { AuthPanel } from './auth/auth-panel';
 import { Brand } from './ui/brand';
 import { CoffeeCupIcon, ScanIcon, TicketIcon } from './ui/icons';
@@ -8,6 +10,18 @@ export default async function Home({
   searchParams: Promise<{ error?: string }>;
 }) {
   const { error } = await searchParams;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    redirect(
+      user.email?.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase()
+        ? '/admin'
+        : '/card'
+    );
+  }
 
   return (
     <main className="auth-page page-shell">
