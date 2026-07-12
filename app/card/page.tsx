@@ -12,18 +12,20 @@ export default async function CardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect('/');
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('name, card_code, current_stamps')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
+  if (profileError) throw profileError;
   if (!profile) redirect('/');
 
-  const { count: freeCoffees } = await supabase
+  const { count: freeCoffees, error: rewardsError } = await supabase
     .from('rewards')
     .select('*', { count: 'exact', head: true })
     .eq('customer_id', user.id)
     .is('redeemed_at', null);
+  if (rewardsError) console.error('rewards count failed', rewardsError);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col items-center gap-6 p-6">
