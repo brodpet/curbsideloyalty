@@ -77,12 +77,12 @@ export function AdminScanner() {
             handleCode(manualCode);
           }}
         >
-          <label className="field-label" htmlFor="manual-card-code">Or enter the card code manually</label>
+          <label className="field-label" htmlFor="manual-card-code">Or enter the ticket code (like #a1b2c3)</label>
           <input
             autoComplete="off"
             id="manual-card-code"
             onChange={(event) => setManualCode(event.target.value)}
-            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            placeholder="#a1b2c3"
             value={manualCode}
           />
           <button className="button button--primary" disabled={pending || !manualCode.trim()} type="submit">

@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { applyStamp, isWithinCooldown } from '@/lib/loyalty';
+import { parseCardCode } from '@/lib/card-code';
 
 export type CardState = {
   ok: boolean;
@@ -27,14 +28,34 @@ async function requireAdmin(): Promise<string | null> {
   return null;
 }
 
+type ProfileRow = { id: string; name: string; current_stamps: number; card_code: string };
+type Db = ReturnType<typeof createAdminClient>;
+
+// Resolves a full uuid or the 6-8 char short code printed on the ticket.
+async function findProfileByCode(
+  db: Db,
+  rawCode: string
+): Promise<{ profile?: ProfileRow; message?: string }> {
+  const parsed = parseCardCode(rawCode);
+  if (parsed.kind === 'invalid') return { message: 'Card not recognized' };
+
+  let query = db.from('profiles').select('id, name, current_stamps, card_code');
+  query =
+    parsed.kind === 'full'
+      ? query.eq('card_code', parsed.code)
+      : query.gte('card_code', parsed.lo).lte('card_code', parsed.hi);
+
+  const { data, error } = await query.limit(2);
+  if (error) return { message: 'Lookup failed — try again' };
+  if (!data || data.length === 0) return { message: 'Card not recognized' };
+  if (data.length > 1) return { message: 'Code matches more than one card — scan the QR instead' };
+  return { profile: data[0] };
+}
+
 async function fetchCardState(cardCode: string): Promise<CardState> {
   const db = createAdminClient();
-  const { data: profile } = await db
-    .from('profiles')
-    .select('id, name, current_stamps')
-    .eq('card_code', cardCode)
-    .maybeSingle();
-  if (!profile) return { ok: false, message: 'Card not recognized' };
+  const { profile, message } = await findProfileByCode(db, cardCode);
+  if (!profile) return { ok: false, message };
 
   const { count } = await db
     .from('rewards')
@@ -45,7 +66,7 @@ async function fetchCardState(cardCode: string): Promise<CardState> {
   return {
     ok: true,
     customer: {
-      cardCode,
+      cardCode: profile.card_code,
       name: profile.name,
       currentStamps: profile.current_stamps,
       unredeemedRewards: count ?? 0,
@@ -63,14 +84,10 @@ export async function addStamp(cardCode: string): Promise<CardState> {
   const denied = await requireAdmin();
   if (denied) return { ok: false, message: denied };
 
-  const code = cardCode.trim();
   const db = createAdminClient();
-  const { data: profile } = await db
-    .from('profiles')
-    .select('id, current_stamps')
-    .eq('card_code', code)
-    .maybeSingle();
-  if (!profile) return { ok: false, message: 'Card not recognized' };
+  const { profile, message } = await findProfileByCode(db, cardCode);
+  if (!profile) return { ok: false, message };
+  const code = profile.card_code;
 
   // Double-scan protection: ignore if last stamp is within the cooldown.
   const { data: lastStamp } = await db
@@ -125,14 +142,10 @@ export async function redeemReward(cardCode: string): Promise<CardState> {
   const denied = await requireAdmin();
   if (denied) return { ok: false, message: denied };
 
-  const code = cardCode.trim();
   const db = createAdminClient();
-  const { data: profile } = await db
-    .from('profiles')
-    .select('id')
-    .eq('card_code', code)
-    .maybeSingle();
-  if (!profile) return { ok: false, message: 'Card not recognized' };
+  const { profile, message } = await findProfileByCode(db, cardCode);
+  if (!profile) return { ok: false, message };
+  const code = profile.card_code;
 
   const { data: reward } = await db
     .from('rewards')
