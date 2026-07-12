@@ -7,6 +7,7 @@ import { Brand } from '@/app/ui/brand';
 import { StampRail } from '@/app/ui/stamp-rail';
 import { STAMP_THRESHOLD } from '@/lib/loyalty';
 import { AutoRefresh } from './refresh';
+import { Greeting } from './greeting';
 
 export default async function CardPage() {
   const supabase = await createClient();
@@ -54,7 +55,7 @@ export default async function CardPage() {
         <div className="customer-grid">
           <section className="customer-intro" aria-labelledby="card-heading">
             <span className="eyebrow">Personal loyalty card</span>
-            <h1 id="card-heading">Good morning, {firstName}.</h1>
+            <Greeting name={firstName} />
             <p className="customer-intro__lead">
               Keep this ticket handy when you order. Your progress updates automatically after a stamp.
             </p>
