@@ -1,6 +1,12 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 
+function redirectPreservingCookies(base: NextResponse, url: URL): NextResponse {
+  const redirect = NextResponse.redirect(url);
+  base.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+  return redirect;
+}
+
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request });
 
@@ -29,14 +35,16 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
+  const inCard = path === '/card' || path.startsWith('/card/');
+  const inAdmin = path === '/admin' || path.startsWith('/admin/');
   const isAdmin =
     user?.email?.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase();
 
-  if (!user && (path.startsWith('/card') || path.startsWith('/admin'))) {
-    return NextResponse.redirect(new URL('/', request.url));
+  if (!user && (inCard || inAdmin)) {
+    return redirectPreservingCookies(response, new URL('/', request.url));
   }
-  if (path.startsWith('/admin') && !isAdmin) {
-    return NextResponse.redirect(new URL('/card', request.url));
+  if (inAdmin && !isAdmin) {
+    return redirectPreservingCookies(response, new URL('/card', request.url));
   }
 
   return response;
