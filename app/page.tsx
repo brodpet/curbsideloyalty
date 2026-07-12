@@ -1,4 +1,6 @@
-import { login, signup } from './auth/actions';
+import { AuthPanel } from './auth/auth-panel';
+import { Brand } from './ui/brand';
+import { CoffeeCupIcon, ScanIcon, TicketIcon } from './ui/icons';
 
 export default async function Home({
   searchParams,
@@ -6,31 +8,52 @@ export default async function Home({
   searchParams: Promise<{ error?: string }>;
 }) {
   const { error } = await searchParams;
+
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-8 p-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold">☕ Curbside Loyalty</h1>
-        <p className="mt-1 text-sm text-gray-500">Buy 10 coffees, get 1 free</p>
+    <main className="auth-page page-shell">
+      <div className="auth-page__inner">
+        <section className="auth-hero" aria-labelledby="home-heading">
+          <header className="auth-hero__header">
+            <Brand />
+            <span className="eyebrow">10 stamps / 1 coffee</span>
+          </header>
+
+          <div className="auth-hero__copy">
+            <span className="eyebrow">Your everyday coffee, kept track of</span>
+            <h1 id="home-heading">
+              Your next <span>coffee</span> starts here.
+            </h1>
+            <p className="auth-hero__lead">
+              Collect a stamp with every purchase. When the ticket is full, your next cup is on us.
+            </p>
+
+            <div className="hero-ticket" aria-label="Ten stamps earn one free coffee">
+              <div>
+                <div className="hero-ticket__label">Curbside coffee club</div>
+                <div className="hero-ticket__title">10 cups → 1 on us</div>
+              </div>
+              <div className="hero-ticket__number">10</div>
+            </div>
+          </div>
+
+          <div className="how-it-works" aria-label="How the loyalty card works">
+            <div className="how-it-works__item">
+              <TicketIcon size={21} />
+              <span>Make a purchase</span>
+            </div>
+            <div className="how-it-works__item">
+              <ScanIcon size={21} />
+              <span>Show your QR card</span>
+            </div>
+            <div className="how-it-works__item">
+              <CoffeeCupIcon size={21} />
+              <span>Enjoy the next one free</span>
+            </div>
+          </div>
+        </section>
+
+        <AuthPanel error={error} />
       </div>
-
-      {error && (
-        <p className="rounded bg-red-100 p-3 text-sm text-red-700">{error}</p>
-      )}
-
-      <form action={login} className="flex flex-col gap-3">
-        <h2 className="font-semibold">Log in</h2>
-        <input name="email" type="email" required placeholder="Email" className="rounded border p-2" />
-        <input name="password" type="password" required placeholder="Password" className="rounded border p-2" />
-        <button className="rounded bg-black p-2 font-medium text-white">Log in</button>
-      </form>
-
-      <form action={signup} className="flex flex-col gap-3">
-        <h2 className="font-semibold">New here? Sign up</h2>
-        <input name="name" required placeholder="Your name" className="rounded border p-2" />
-        <input name="email" type="email" required placeholder="Email" className="rounded border p-2" />
-        <input name="password" type="password" required minLength={6} placeholder="Password (6+ chars)" className="rounded border p-2" />
-        <button className="rounded border border-black p-2 font-medium">Create my card</button>
-      </form>
     </main>
   );
 }
