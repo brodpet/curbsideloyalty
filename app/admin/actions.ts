@@ -52,6 +52,45 @@ async function findProfileByCode(
   return { profile: data[0] };
 }
 
+export type CustomerHit = {
+  cardCode: string;
+  name: string;
+  email: string;
+  currentStamps: number;
+};
+
+export async function searchCustomers(query: string): Promise<CustomerHit[]> {
+  const denied = await requireAdmin();
+  if (denied) return [];
+
+  // Strip characters with meaning in PostgREST or() filters and LIKE patterns.
+  const q = query.trim().replace(/[,()%_\\]/g, '');
+  if (q.length < 2) return [];
+
+  const db = createAdminClient();
+  let builder = db
+    .from('profiles')
+    .select('name, email, card_code, current_stamps')
+    .or(`name.ilike.%${q}%,email.ilike.%${q}%`)
+    .order('name')
+    .limit(8);
+  if (process.env.ADMIN_EMAIL) {
+    builder = builder.neq('email', process.env.ADMIN_EMAIL.toLowerCase());
+  }
+
+  const { data, error } = await builder;
+  if (error) {
+    console.error('customer search failed', error);
+    return [];
+  }
+  return (data ?? []).map((p) => ({
+    cardCode: p.card_code,
+    name: p.name,
+    email: p.email,
+    currentStamps: p.current_stamps,
+  }));
+}
+
 async function fetchCardState(cardCode: string): Promise<CardState> {
   const db = createAdminClient();
   const { profile, message } = await findProfileByCode(db, cardCode);

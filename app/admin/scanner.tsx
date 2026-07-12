@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { addStamp, lookupCard, redeemReward, type CardState } from './actions';
+import { CustomerSearch } from './customer-search';
 import { StampRail } from '@/app/ui/stamp-rail';
 import { STAMP_THRESHOLD } from '@/lib/loyalty';
 import { ArrowRightIcon, CheckIcon, CoffeeCupIcon, ScanIcon } from '@/app/ui/icons';
@@ -90,6 +91,8 @@ export function AdminScanner() {
             {!pending && <ArrowRightIcon size={18} />}
           </button>
         </form>
+
+        <CustomerSearch disabled={pending} onSelect={handleCode} />
       </section>
     );
   }
