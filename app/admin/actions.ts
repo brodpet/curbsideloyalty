@@ -80,12 +80,21 @@ export async function addStamp(cardCode: string): Promise<CardState> {
     .order('stamped_at', { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (isWithinCooldown(lastStamp?.stamped_at ?? null, Date.now())) {
+  let cooldownHit = false;
+  let stampResult: { newStamps: number; rewardEarned: boolean } | null = null;
+  try {
+    cooldownHit = isWithinCooldown(lastStamp?.stamped_at ?? null, Date.now());
+    if (!cooldownHit) stampResult = applyStamp(profile.current_stamps);
+  } catch (err) {
+    console.error('loyalty invariant violation', err);
+    return { ok: false, message: 'Card data inconsistent — check manually' };
+  }
+  if (cooldownHit || !stampResult) {
     const state = await fetchCardState(code);
     return { ...state, message: 'Just stamped — ignored duplicate scan' };
   }
 
-  const { newStamps, rewardEarned } = applyStamp(profile.current_stamps);
+  const { newStamps, rewardEarned } = stampResult;
 
   const { error: stampError } = await db
     .from('stamps')
@@ -102,7 +111,10 @@ export async function addStamp(cardCode: string): Promise<CardState> {
     const { error: rewardError } = await db
       .from('rewards')
       .insert({ customer_id: profile.id });
-    if (rewardError) return { ok: false, message: 'Stamp added but reward failed — check manually' };
+    if (rewardError) {
+      const state = await fetchCardState(code);
+      return { ...state, ok: false, message: 'Stamp added but reward failed — check manually' };
+    }
   }
 
   const state = await fetchCardState(code);
@@ -132,11 +144,14 @@ export async function redeemReward(cardCode: string): Promise<CardState> {
     .maybeSingle();
   if (!reward) return { ok: false, message: 'No free coffee to redeem' };
 
-  const { error } = await db
+  const { data: redeemed, error } = await db
     .from('rewards')
     .update({ redeemed_at: new Date().toISOString() })
-    .eq('id', reward.id);
+    .eq('id', reward.id)
+    .is('redeemed_at', null)
+    .select('id');
   if (error) return { ok: false, message: 'Failed to redeem — try again' };
+  if (!redeemed || redeemed.length === 0) return { ok: false, message: 'Already redeemed — scan again' };
 
   const state = await fetchCardState(code);
   return { ...state, message: 'Free coffee redeemed ✅' };
