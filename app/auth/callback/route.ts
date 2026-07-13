@@ -12,8 +12,31 @@ function isNewUser(user: User): boolean {
   return Math.abs(lastSignIn - created) < 5000;
 }
 
+// In popup mode the sign-in ran in a separate window (Google blocks OAuth
+// inside iframes). Hand the destination back to the window that opened us,
+// then close, so the embedded page navigates without ever leaving the frame.
+function popupResponse(redirect: string) {
+  const payload = JSON.stringify({ source: 'curbside-auth', redirect }).replace(/</g, '\\u003c');
+  return new NextResponse(
+    `<!DOCTYPE html><html><body><script>
+      if (window.opener) {
+        window.opener.postMessage(${payload}, window.location.origin);
+        window.close();
+      } else {
+        window.location.replace(${JSON.stringify(redirect)});
+      }
+    </script></body></html>`,
+    { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+  );
+}
+
+function finish(request: NextRequest, redirect: string) {
+  if (request.nextUrl.searchParams.get('popup') === '1') return popupResponse(redirect);
+  return NextResponse.redirect(new URL(redirect, request.url));
+}
+
 function errorRedirect(request: NextRequest, message: string) {
-  return NextResponse.redirect(new URL('/?error=' + encodeURIComponent(message), request.url));
+  return finish(request, '/?error=' + encodeURIComponent(message));
 }
 
 export async function GET(request: NextRequest) {
@@ -33,5 +56,5 @@ export async function GET(request: NextRequest) {
 
   const isAdmin =
     data.user.email?.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase();
-  return NextResponse.redirect(new URL(isAdmin ? '/admin' : '/card', request.url));
+  return finish(request, isAdmin ? '/admin' : '/card');
 }

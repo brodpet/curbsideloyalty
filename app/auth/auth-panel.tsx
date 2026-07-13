@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { login, signInWithGoogle, signup } from './actions';
+import { login, signup } from './actions';
 import { ArrowRightIcon, GoogleIcon, LockIcon } from '@/app/ui/icons';
 
 function SubmitButton({ children, kind }: { children: React.ReactNode; kind: 'primary' | 'secondary' }) {
@@ -16,11 +16,42 @@ function SubmitButton({ children, kind }: { children: React.ReactNode; kind: 'pr
   );
 }
 
-function GoogleButton() {
-  const { pending } = useFormStatus();
+// Google refuses to load its sign-in pages inside an iframe (the PWA shell
+// embeds this site), so OAuth runs in a popup. The popup finishes on
+// /auth/callback?popup=1, which posts the destination back to this window.
+function GoogleButton({ mode }: { mode: 'signup' | 'login' }) {
+  const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    const onMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      const data = event.data as { source?: string; redirect?: string };
+      if (data?.source === 'curbside-auth' && data.redirect) {
+        window.location.assign(data.redirect);
+      }
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, []);
+
+  const openPopup = () => {
+    const url = `/auth/google-start?intent=${mode}`;
+    const popup = window.open(url, 'curbside-google-signin', 'popup,width=480,height=640');
+    if (!popup) {
+      window.location.assign(url);
+      return;
+    }
+    setPending(true);
+    const watcher = window.setInterval(() => {
+      if (popup.closed) {
+        window.clearInterval(watcher);
+        setPending(false);
+      }
+    }, 500);
+  };
 
   return (
-    <button className="button button--secondary button--full" disabled={pending} type="submit">
+    <button className="button button--secondary button--full" disabled={pending} onClick={openPopup} type="button">
       <GoogleIcon size={18} />
       <span>{pending ? 'Working…' : 'Continue with Google'}</span>
     </button>
@@ -151,10 +182,7 @@ export function AuthPanel({ error }: { error?: string }) {
       )}
 
       <div aria-hidden="true" className="auth-divider">or</div>
-      <form action={signInWithGoogle}>
-        <input name="intent" type="hidden" value={mode} />
-        <GoogleButton />
-      </form>
+      <GoogleButton mode={mode} />
 
       <p className="auth-panel__fineprint">No card number to remember. Your QR code is created automatically.</p>
     </section>
