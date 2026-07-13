@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { login, signup } from './actions';
-import { ArrowRightIcon, LockIcon } from '@/app/ui/icons';
+import { login, signInWithGoogle, signup } from './actions';
+import { ArrowRightIcon, GoogleIcon, LockIcon } from '@/app/ui/icons';
 
 function SubmitButton({ children, kind }: { children: React.ReactNode; kind: 'primary' | 'secondary' }) {
   const { pending } = useFormStatus();
@@ -12,6 +12,17 @@ function SubmitButton({ children, kind }: { children: React.ReactNode; kind: 'pr
     <button className={`button button--${kind} button--full`} disabled={pending} type="submit">
       <span>{pending ? 'Working…' : children}</span>
       {!pending && <ArrowRightIcon size={18} />}
+    </button>
+  );
+}
+
+function GoogleButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <button className="button button--secondary button--full" disabled={pending} type="submit">
+      <GoogleIcon size={18} />
+      <span>{pending ? 'Working…' : 'Continue with Google'}</span>
     </button>
   );
 }
@@ -138,6 +149,12 @@ export function AuthPanel({ error }: { error?: string }) {
           <SubmitButton kind="primary">Sign in</SubmitButton>
         </form>
       )}
+
+      <div aria-hidden="true" className="auth-divider">or</div>
+      <form action={signInWithGoogle}>
+        <input name="intent" type="hidden" value={mode} />
+        <GoogleButton />
+      </form>
 
       <p className="auth-panel__fineprint">No card number to remember. Your QR code is created automatically.</p>
     </section>

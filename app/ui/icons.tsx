@@ -112,3 +112,14 @@ export function CheckIcon(props: IconProps) {
     </Icon>
   );
 }
+
+export function GoogleIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg aria-hidden="true" className={className} height={size} viewBox="0 0 24 24" width={size} xmlns="http://www.w3.org/2000/svg">
+      <path d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.89-1.74 2.98-4.3 2.98-7.36Z" fill="#4285F4" />
+      <path d="M12 22c2.7 0 4.96-.9 6.62-2.42l-3.24-2.5c-.9.6-2.04.95-3.38.95-2.6 0-4.8-1.76-5.59-4.12H3.06v2.58A10 10 0 0 0 12 22Z" fill="#34A853" />
+      <path d="M6.41 13.9a6 6 0 0 1 0-3.8V7.5H3.06a10 10 0 0 0 0 8.98l3.35-2.58Z" fill="#FBBC05" />
+      <path d="M12 5.98c1.47 0 2.79.5 3.82 1.5l2.87-2.88A9.97 9.97 0 0 0 3.06 7.51l3.35 2.58C7.2 7.74 9.4 5.98 12 5.98Z" fill="#EA4335" />
+    </svg>
+  );
+}
