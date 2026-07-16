@@ -1,5 +1,6 @@
 'use server';
 
+import { after } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { applyStamp, isWithinCooldown } from '@/lib/loyalty';
@@ -28,7 +29,13 @@ async function requireAdmin(): Promise<string | null> {
   return null;
 }
 
-type ProfileRow = { id: string; name: string; current_stamps: number; card_code: string };
+type ProfileRow = {
+  id: string;
+  name: string;
+  email: string;
+  current_stamps: number;
+  card_code: string;
+};
 type Db = ReturnType<typeof createAdminClient>;
 
 // Resolves a full uuid or the 6-8 char short code printed on the ticket.
@@ -39,7 +46,7 @@ async function findProfileByCode(
   const parsed = parseCardCode(rawCode);
   if (parsed.kind === 'invalid') return { message: 'Card not recognized' };
 
-  let query = db.from('profiles').select('id, name, current_stamps, card_code');
+  let query = db.from('profiles').select('id, name, email, current_stamps, card_code');
   query =
     parsed.kind === 'full'
       ? query.eq('card_code', parsed.code)
@@ -89,6 +96,33 @@ export async function searchCustomers(query: string): Promise<CustomerHit[]> {
     email: p.email,
     currentStamps: p.current_stamps,
   }));
+}
+
+// Best-effort notification; runs after the response is sent and never fails the stamp.
+function notifyStampWebhook(profile: ProfileRow, newStamps: number, rewardEarned: boolean) {
+  const url = process.env.N8N_STAMP_WEBHOOK_URL;
+  if (!url) return;
+  const payload = {
+    event: 'stamp',
+    cardCode: profile.card_code,
+    name: profile.name,
+    email: profile.email,
+    currentStamps: newStamps,
+    rewardEarned,
+    stampedAt: new Date().toISOString(),
+  };
+  after(async () => {
+    try {
+      await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(5000),
+      });
+    } catch (err) {
+      console.error('stamp webhook failed', err);
+    }
+  });
 }
 
 async function fetchCardState(cardCode: string): Promise<CardState> {
@@ -172,6 +206,8 @@ export async function addStamp(cardCode: string): Promise<CardState> {
       return { ...state, ok: false, message: 'Stamp added but reward failed — check manually' };
     }
   }
+
+  notifyStampWebhook(profile, newStamps, rewardEarned);
 
   const state = await fetchCardState(code);
   return { ...state, rewardEarned };
