@@ -1,0 +1,51 @@
+- generic [active] [ref=f8e1]:
+  - main [ref=f8e2]:
+    - generic [ref=f8e3]:
+      - region [ref=f8e4]:
+        - generic [ref=f8e5]:
+          - generic [ref=f8e12]:
+            - generic [ref=f8e13]: CURBSIDE
+            - generic [ref=f8e14]: CAFÉ
+          - generic [ref=f8e15]: 10 stamps / 1 coffee
+        - generic [ref=f8e16]:
+          - text: A little something for your coffee ritual
+          - generic [ref=f8e17]: Loyalty Card
+          - heading "Your next coffee is waiting." [level=1] [ref=f8e18]
+          - paragraph [ref=f8e19]: Collect a stamp with every order. When the card is full, your next drink is on us.
+          - generic "Ten stamps earn one free coffee" [ref=f8e20]:
+            - generic [ref=f8e21]:
+              - generic [ref=f8e22]: Curbside Café
+              - generic [ref=f8e23]: 10 orders → 1 free drink
+            - generic [ref=f8e24]: "10"
+        - generic "How the loyalty card works" [ref=f8e25]:
+          - generic [ref=f8e26]: Enjoy your order
+          - generic [ref=f8e33]: Collect a stamp
+          - generic [ref=f8e38]: Get the tenth on us
+      - region [ref=f8e44]:
+        - generic [ref=f8e45]:
+          - generic [ref=f8e46]: Your card, your routine
+          - generic [ref=f8e47]: Secure sign-in
+        - heading "Create your card" [level=2] [ref=f8e52]
+        - paragraph [ref=f8e53]: Keep your stamps in your pocket and your next coffee in sight.
+        - tablist "Account access" [ref=f8e54]:
+          - tab "New card" [selected] [ref=f8e55] [cursor=pointer]
+          - tab "Sign in" [ref=f8e56] [cursor=pointer]
+        - generic [ref=f8e57]:
+          - generic [ref=f8e58]:
+            - generic [ref=f8e59]: Name
+            - textbox "Name" [ref=f8e60]:
+              - /placeholder: What should we call you?
+          - generic [ref=f8e61]:
+            - generic [ref=f8e62]: Email
+            - textbox "Email" [ref=f8e63]:
+              - /placeholder: you@example.com
+          - generic [ref=f8e64]:
+            - generic [ref=f8e65]: Password
+            - textbox "Password" [ref=f8e66]:
+              - /placeholder: At least 6 characters
+          - button "Create my card" [ref=f8e67] [cursor=pointer]
+        - generic [ref=f8e72]: or
+        - button "Continue with Google" [ref=f8e74] [cursor=pointer]
+        - paragraph [ref=f8e81]: No card number to remember. Your QR code is created automatically.
+  - button "Open Next.js Dev Tools" [ref=f8e87] [cursor=pointer]
+  - alert [ref=f8e91]

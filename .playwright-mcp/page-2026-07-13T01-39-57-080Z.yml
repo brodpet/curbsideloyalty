@@ -1,0 +1,30 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e10]:
+        - generic [ref=e11]: CURBSIDE
+        - generic [ref=e12]: CAFÉ
+      - generic [ref=e13]:
+        - generic [ref=e14]: Staff mode
+        - button "Log out" [ref=e16] [cursor=pointer]
+    - generic [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - text: Counter / scan card
+          - heading "Ready for the next customer." [level=1] [ref=e23]
+        - paragraph [ref=e24]: Scan a QR code to look up a loyalty ticket, add a stamp, or redeem a reward.
+      - region [ref=e25]:
+        - generic [ref=e26]:
+          - heading "Scan a loyalty ticket" [level=2] [ref=e27]
+          - generic [ref=e28]: Scanner ready
+        - generic [ref=e29]: Position QR code within the frame
+        - generic [ref=e38]:
+          - generic [ref=e39]: "Or enter the ticket code (like #a1b2c3)"
+          - 'textbox "Or enter the ticket code (like #a1b2c3)" [ref=e40]':
+            - /placeholder: "#a1b2c3"
+          - button "Look up" [disabled] [ref=e41]
+        - generic [ref=e46]:
+          - generic [ref=e47]: Or find a customer by name or email
+          - textbox "Or find a customer by name or email" [ref=e48]:
+            - /placeholder: Start typing a name…
+  - alert [ref=e49]
